@@ -1,0 +1,10 @@
+title: Conan Informática
+description: Soluciones IT corporativas y residenciales en Salta. Soporte técnico, redes corporativas, backup y consultoría.
+url: ""
+baseurl: ""
+markdown: kramdown
+permalink: /:path/
+exclude:
+  - README.md
+  - .gitignore
+  - .github
