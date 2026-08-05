@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto - Conan Soluciones Informáticas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        table.page-layout {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.page-layout, 
+        table.page-layout > thead > tr > td, 
+        table.page-layout > tbody > tr > td, 
+        table.page-layout > tfoot > tr > td {
+            border: none;
+            padding: 0;
+        }
+
+        /* Membrete */
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            max-width: 180px;
+            height: auto;
+        }
+        .header-details {
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        /* Pie de página */
+        .footer-content {
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        /* Tabla de Ítems */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .items-table th {
+            background-color: #f2f2f2;
+        }
+
+        /* Botón de eliminación en pantalla */
+        .btn-remove {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Controles y Panel de Edición */
+        .control-panel {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Totales */
+        .totals-section {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+        .totals-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .totals-section td {
+            padding: 5px;
+            text-align: right;
+        }
+
+        /* Reglas de Impresión */
+        @media print {
+            body {
+                padding: 0;
+            }
+            .no-print, .btn-remove {
+                display: none !important;
+            }
+            @page {
+                margin: 15mm 10mm 15mm 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Panel de control (Oculto en PDF/Impresión) -->
+    <div class="control-panel no-print">
+        <div>
+            <label><strong>Presupuesto N°:</strong></label>
+            <input type="text" id="budget-number" readonly style="width: 80px;">
+            <button class="btn-action" onclick="generarNuevoPresupuesto()">Nuevo (+1)</button>
+        </div>
+
+        <!-- Selector de Modalidad (Freelance/Taller vs Local) -->
+        <div style="border-left: 1px solid #ccc; padding-left: 10px;">
+            <strong>Tipo de Tarifa:</strong><br>
+            <label><input type="radio" name="tarifa-tipo" value="freelance" checked onchange="actualizarPreciosDropdown()"> Freelance/Taller</label>
+            <label style="margin-left: 8px;"><input type="radio" name="tarifa-tipo" value="local" onchange="actualizarPreciosDropdown()"> Local</label>
+        </div>
+        
+        <!-- Desplegable para seleccionar servicios del tarifario -->
+        <div>
+            <label for="service-selector"><strong>Servicios Frecuentes:</strong></label><br>
+            <select id="service-selector" style="padding: 6px; max-width: 350px;">
+                <!-- Opciones cargadas dinámicamente -->
+            </select>
+            <button class="btn-action" onclick="agregarServicioSeleccionado()">+ Cargar</button>
+        </div>
+
+        <div>
+            <button class="btn-action" onclick="agregarFila('', 0)">+ Fila Vacía</button>
+            <button class="btn-action" style="background-color: #27ae60;" onclick="window.print()">Imprimir / Guardar PDF</button>
+        </div>
+    </div>
+
+    <table class="page-layout">
+        
+        <!-- ENCABEZADO REPETITIVO -->
+        <thead>
+            <tr>
+                <td>
+                    <div class="header-content">
+                        <!-- Reemplazar src por tu imagen en Base64 o tu archivo -->
+                        <img src="images/logo.png" alt="Conan Soluciones Informáticas" class="header-logo">
+                        <div class="header-details">
+                            <h2 style="margin: 0; color: #2c3e50;">CONAN SOLUCIONES INFORMÁTICAS</h2>
+                            <p style="margin: 5px 0;">Presupuesto N°: <strong><span id="display-budget-number">000000</span></strong></p>
+                            <p style="margin: 0;">Fecha: <span id="current-date"></span></p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </thead>
+
+        <!-- PIE DE PÁGINA REPETITIVO -->
+        <tfoot>
+            <tr>
+                <td>
+                    <div class="footer-content">
+                        <p style="margin: 2px 0;"><strong>Gracias por elegirnos. Tu técnico informático de confianza.</strong></p>
+                        <p style="margin: 2px 0;">Instagram: @conaninformatica | Facebook: conaninformatica</p>
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+
+        <!-- CUERPO PRINCIPAL DEL PRESUPUESTO -->
+        <tbody>
+            <tr>
+                <td>
+                    <!-- Datos del Cliente -->
+                    <div style="margin-bottom: 15px;">
+                        <p style="margin: 3px 0;"><strong>Cliente:</strong> <span contenteditable="true">Nombre y Apellido</span></p>
+                        <p style="margin: 3px 0;"><strong>Equipo / Servicio:</strong> <span contenteditable="true">Detalle del equipo o problema</span></p>
+                    </div>
+
+                    <!-- Tabla de ítems con edición directa -->
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th style="width: 120px;">Precio ($)</th>
+                                <th class="no-print" style="width: 50px; text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-list">
+                            <!-- Filas iniciales -->
+                        </tbody>
+                    </table>
+
+                    <!-- Sección de Subtotal y Totales -->
+                    <div class="totals-section">
+                        <table>
+                            <tr>
+                                <td><strong>Subtotal:</strong></td>
+                                <td>$<span id="subtotal">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total:</strong></td>
+                                <td><strong>$<span id="total">0.00</span></strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // Listado completo de servicios tomado del PDF
+        const serviciosBase = [
+            { desc: "Diagnóstico/revisión (PC-Notebook-AIO)", freelance: 19877, local: 26503 },
+            { desc: "Formateo e instalación de S.O. sin BackUp (PC-Notebook-AIO-Consolas)", freelance: 49691, local: 57974 },
+            { desc: "Limpieza HW + Formateo + S.O. + Prog. Básicos + BackUp 100GB (Cambio a SSD)", freelance: 66256, local: 82820 },
+            { desc: "BackUp de Datos cada 100gb Extras (PC-Notebook-AIO)", freelance: 16564, local: 21533 },
+            { desc: "Inicialización de equipo nuevo (configuración + Programas Básicos)", freelance: 43067, local: 57974 },
+            { desc: "Instalación Programas OpenSource x1", freelance: 13251, local: 21533 },
+            { desc: "Instalación Programas comerciales x1 provistos", freelance: 16564, local: 24846 },
+            { desc: "Instalación y configuración de Drivers", freelance: 29816, local: 33128 },
+            { desc: "Eliminación de malware", freelance: 41411, local: 49691 },
+            { desc: "Conexión Remota x 1 hs Problemas Generales", freelance: 16564, local: 24846 },
+            { desc: "Visita a domicilio x 1 hs", freelance: 24846, local: 33128 },
+            { desc: "Visita a domicilio x 1 hs Emergencia Fuera de HS", freelance: 57974, local: 66256 },
+            { desc: "Clonado de disco sin errores SMART", freelance: 46380, local: 57974 },
+            { desc: "Clonado de disco con errores SMART", freelance: 66256, local: 82820 },
+            { desc: "Reparación de inicio de Windows / Restablecimiento de inicio de sesión", freelance: 43762, local: 58350 },
+            { desc: "Armar PC básica desde 0", freelance: 82820, local: 91102 },
+            { desc: "Armar PC gamer desde 0", freelance: 102144, local: 114912 },
+            { desc: "Cambio de componentes hardware x1 (PC)", freelance: 24846, local: 41411 },
+            { desc: "Limpieza de hardware + Cambio de Pasta térmica (PC)", freelance: 41411, local: 57974 },
+            { desc: "Limpieza de hardware + Cambio de Pasta térmica (Notebook-AIO-Consolas)", freelance: 41411, local: 59630 },
+            { desc: "Cambio de Flex (NOTEBOOK)", freelance: 49691, local: 59630 },
+            { desc: "Cambio de pantalla (NOTEBOOK)", freelance: 38098, local: 57974 },
+            { desc: "Cambio de teclado (NOTEBOOK)", freelance: 33128, local: 41411 },
+            { desc: "Despiece / Cambio de componentes internos (Notebook-AIO-Consolas)", freelance: 57974, local: 62943 },
+            { desc: "Hard Reset / Configuración (Tablets-Celulares-iPads)", freelance: 29816, local: 46380 },
+            { desc: "Configuración Router/Access Point In Site", freelance: 33128, local: 46380 },
+            { desc: "Reballing (Hardware-Mother)", freelance: 102144, local: 140448 },
+            { desc: "Cambio de pin de carga (Notebook - AIO)", freelance: 59630, local: 74538 }
+        ];
+
+        // Fecha actual
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-AR');
+
+        // Actualizar el selector de servicios según el tipo de tarifa seleccionado
+        function actualizarPreciosDropdown() {
+            const selector = document.getElementById('service-selector');
+            const esLocal = document.querySelector('input[name="tarifa-tipo"]:checked').value === 'local';
+            
+            selector.innerHTML = '<option value="" data-price="0">-- Seleccionar servicio tarifado --</option>';
+
+            serviciosBase.forEach(s => {
+                const precio = esLocal ? s.local : s.freelance;
+                const opt = document.createElement('option');
+                opt.value = s.desc;
+                opt.setAttribute('data-price', precio);
+                opt.textContent = `${s.desc} - $${precio.toLocaleString('es-AR')}`;
+                selector.appendChild(opt);
+            });
+        }
+
+        // Cálculo dinámico de totales
+        function calcularTotales() {
+            const precios = document.querySelectorAll('.price');
+            let subtotal = 0;
+
+            precios.forEach(cell => {
+                const valor = parseFloat(cell.innerText.replace(/[^0-9.-]+/g, '')) || 0;
+                subtotal += valor;
+            });
+
+            document.getElementById('subtotal').innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+            document.getElementById('total').innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+        }
+
+        // Agregar fila a la tabla
+        function agregarFila(descripcion = "Nuevo servicio / repuesto", precio = 0) {
+            const tbody = document.getElementById('items-list');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td contenteditable="true">${descripcion}</td>
+                <td contenteditable="true" class="price" oninput="calcularTotales()">${precio}</td>
+                <td class="no-print" style="text-align: center;">
+                    <button class="btn-remove" onclick="eliminarFila(this)">X</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            calcularTotales();
+        }
+
+        // Agregar servicio desde el desplegable
+        function agregarServicioSeleccionado() {
+            const selector = document.getElementById('service-selector');
+            const selectedOption = selector.options[selector.selectedIndex];
+            
+            if (!selectedOption || !selectedOption.value) return;
+
+            const descripcion = selectedOption.value;
+            const precio = selectedOption.getAttribute('data-price');
+
+            agregarFila(descripcion, precio);
+            selector.selectedIndex = 0;
+        }
+
+        // Eliminar fila
+        function eliminarFila(btn) {
+            const row = btn.closest('tr');
+            row.remove();
+            calcularTotales();
+        }
+
+        // Contador mediante LocalStorage
+        const COUNTER_KEY = 'conan_budget_counter';
+
+        function obtenerNumeroActual() {
+            let count = localStorage.getItem(COUNTER_KEY);
+            if (!count) {
+                count = 1;
+                localStorage.setItem(COUNTER_KEY, count);
+            }
+            return parseInt(count);
+        }
+
+        function actualizarVistaNumero(numero) {
+            const numFormateado = String(numero).padStart(6, '0');
+            document.getElementById('budget-number').value = numFormateado;
+            document.getElementById('display-budget-number').innerText = numFormateado;
+        }
+
+        function generarNuevoPresupuesto() {
+            let actual = obtenerNumeroActual() + 1;
+            localStorage.setItem(COUNTER_KEY, actual);
+            actualizarVistaNumero(actual);
+        }
+
+        // Inicializar al cargar
+        actualizarVistaNumero(obtenerNumeroActual());
+        actualizarPreciosDropdown();
+    </script>
+</body>
+</html>
