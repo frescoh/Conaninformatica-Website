@@ -40,17 +40,26 @@
         }
         .header-details {
             text-align: right;
-            font-size: 0.9em;
+            font-size: 0.85em;
+            line-height: 1.3;
+        }
+        .header-details h2 {
+            margin: 0 0 4px 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+        .header-details p {
+            margin: 2px 0;
         }
 
         /* Pie de página */
         .footer-content {
             border-top: 1px solid #ccc;
-            padding-top: 10px;
-            margin-top: 20px;
+            padding-top: 8px;
             text-align: center;
             font-size: 0.85em;
             color: #555;
+            width: 100%;
         }
 
         /* Tabla de Ítems */
@@ -100,11 +109,11 @@
             cursor: pointer;
         }
 
-        /* Totales */
+        /* Totales y Observaciones */
         .totals-section {
             margin-top: 20px;
             float: right;
-            width: 300px;
+            width: 280px;
         }
         .totals-section table {
             width: 100%;
@@ -115,7 +124,16 @@
             text-align: right;
         }
 
-        /* Reglas de Impresión */
+        .observations-section {
+            margin-top: 20px;
+            clear: both;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            background-color: #fafafa;
+            font-size: 0.9em;
+        }
+
+        /* Reglas de Impresión y Formato A4 */
         @media print {
             body {
                 padding: 0;
@@ -124,7 +142,22 @@
                 display: none !important;
             }
             @page {
-                margin: 15mm 10mm 15mm 10mm;
+                size: A4;
+                margin: 15mm 10mm 20mm 10mm;
+            }
+            
+            /* Posicionar el pie de página siempre en el borde inferior */
+            .footer-content {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: #fff;
+            }
+
+            .observations-section {
+                background-color: transparent;
+                border: 1px solid #ddd;
             }
         }
     </style>
@@ -139,18 +172,16 @@
             <button class="btn-action" onclick="generarNuevoPresupuesto()">Nuevo (+1)</button>
         </div>
 
-        <!-- Selector de Modalidad (Freelance/Taller vs Local) -->
         <div style="border-left: 1px solid #ccc; padding-left: 10px;">
             <strong>Tipo de Tarifa:</strong><br>
             <label><input type="radio" name="tarifa-tipo" value="freelance" checked onchange="actualizarPreciosDropdown()"> Freelance/Taller</label>
             <label style="margin-left: 8px;"><input type="radio" name="tarifa-tipo" value="local" onchange="actualizarPreciosDropdown()"> Local</label>
         </div>
         
-        <!-- Desplegable para seleccionar servicios del tarifario -->
         <div>
             <label for="service-selector"><strong>Servicios Frecuentes:</strong></label><br>
             <select id="service-selector" style="padding: 6px; max-width: 350px;">
-                <!-- Opciones cargadas dinámicamente -->
+                <!-- Carga dinámica -->
             </select>
             <button class="btn-action" onclick="agregarServicioSeleccionado()">+ Cargar</button>
         </div>
@@ -168,19 +199,20 @@
             <tr>
                 <td>
                     <div class="header-content">
-                        <!-- Reemplazar src por tu imagen en Base64 o tu archivo -->
                         <img src="images/logo.png" alt="Conan Soluciones Informáticas" class="header-logo">
                         <div class="header-details">
-                            <h2 style="margin: 0; color: #2c3e50;">CONAN SOLUCIONES INFORMÁTICAS</h2>
-                            <p style="margin: 5px 0;">Presupuesto N°: <strong><span id="display-budget-number">000000</span></strong></p>
-                            <p style="margin: 0;">Fecha: <span id="current-date"></span></p>
+                            <h2>CONAN SOLUCIONES INFORMÁTICAS</h2>
+                            <p><strong>Atención a Hogares, Negocios y Empresas</strong></p>
+                            <p>Celular / WhatsApp: 3874520000</p>
+                            <p>Web: https://conaninformatica.com.ar/</p>
+                            <p style="margin-top: 5px;">Presupuesto N°: <strong><span id="display-budget-number">000000</span></strong> | Fecha: <span id="current-date"></span></p>
                         </div>
                     </div>
                 </td>
             </tr>
         </thead>
 
-        <!-- PIE DE PÁGINA REPETITIVO -->
+        <!-- PIE DE PÁGINA REPETITIVO EN EL BORDE INFERIOR -->
         <tfoot>
             <tr>
                 <td>
@@ -212,11 +244,11 @@
                             </tr>
                         </thead>
                         <tbody id="items-list">
-                            <!-- Filas iniciales -->
+                            <!-- Filas dinámicas -->
                         </tbody>
                     </table>
 
-                    <!-- Sección de Subtotal y Totales -->
+                    <!-- Totales -->
                     <div class="totals-section">
                         <table>
                             <tr>
@@ -229,13 +261,21 @@
                             </tr>
                         </table>
                     </div>
+
+                    <!-- Sección de Observaciones -->
+                    <div class="observations-section">
+                        <strong>Observaciones / Condiciones:</strong>
+                        <div contenteditable="true" style="margin-top: 5px; outline: none; min-height: 40px;">
+                            • Los presupuestos tienen una validez de 7 días corridos.<br>
+                            • Garantía del servicio: 30 días sobre la reparación realizada.
+                        </div>
+                    </div>
                 </td>
             </tr>
         </tbody>
     </table>
 
     <script>
-        // Listado completo de servicios tomado del PDF
         const serviciosBase = [
             { desc: "Diagnóstico/revisión (PC-Notebook-AIO)", freelance: 19877, local: 26503 },
             { desc: "Formateo e instalación de S.O. sin BackUp (PC-Notebook-AIO-Consolas)", freelance: 49691, local: 57974 },
@@ -267,10 +307,8 @@
             { desc: "Cambio de pin de carga (Notebook - AIO)", freelance: 59630, local: 74538 }
         ];
 
-        // Fecha actual
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-AR');
 
-        // Actualizar el selector de servicios según el tipo de tarifa seleccionado
         function actualizarPreciosDropdown() {
             const selector = document.getElementById('service-selector');
             const esLocal = document.querySelector('input[name="tarifa-tipo"]:checked').value === 'local';
@@ -287,7 +325,6 @@
             });
         }
 
-        // Cálculo dinámico de totales
         function calcularTotales() {
             const precios = document.querySelectorAll('.price');
             let subtotal = 0;
@@ -301,7 +338,6 @@
             document.getElementById('total').innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 });
         }
 
-        // Agregar fila a la tabla
         function agregarFila(descripcion = "Nuevo servicio / repuesto", precio = 0) {
             const tbody = document.getElementById('items-list');
             const newRow = document.createElement('tr');
@@ -316,7 +352,6 @@
             calcularTotales();
         }
 
-        // Agregar servicio desde el desplegable
         function agregarServicioSeleccionado() {
             const selector = document.getElementById('service-selector');
             const selectedOption = selector.options[selector.selectedIndex];
@@ -330,14 +365,12 @@
             selector.selectedIndex = 0;
         }
 
-        // Eliminar fila
         function eliminarFila(btn) {
             const row = btn.closest('tr');
             row.remove();
             calcularTotales();
         }
 
-        // Contador mediante LocalStorage
         const COUNTER_KEY = 'conan_budget_counter';
 
         function obtenerNumeroActual() {
@@ -361,7 +394,6 @@
             actualizarVistaNumero(actual);
         }
 
-        // Inicializar al cargar
         actualizarVistaNumero(obtenerNumeroActual());
         actualizarPreciosDropdown();
     </script>
