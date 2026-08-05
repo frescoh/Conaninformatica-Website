@@ -187,7 +187,7 @@
         </div>
 
         <div>
-            <button class="btn-action" onclick="agregarFila('', 0)">+ Fila Vacía</button>
+            <button class="btn-action" onclick="agregarFila(1, '', 0)">+ Fila Vacía</button>
             <button class="btn-action" style="background-color: #27ae60;" onclick="window.print()">Imprimir / Guardar PDF</button>
         </div>
     </div>
@@ -238,8 +238,10 @@
                     <table class="items-table">
                         <thead>
                             <tr>
+                                <th style="width: 80px; text-align: center;">Cantidad</th>
                                 <th>Descripción</th>
-                                <th style="width: 120px;">Precio ($)</th>
+                                <th style="width: 130px; text-align: right;">Precio unitario ($)</th>
+                                <th style="width: 130px; text-align: right;">Subtotal ($)</th>
                                 <th class="no-print" style="width: 50px; text-align: center;">Acción</th>
                             </tr>
                         </thead>
@@ -251,10 +253,6 @@
                     <!-- Totales -->
                     <div class="totals-section">
                         <table>
-                            <tr>
-                                <td><strong>Subtotal:</strong></td>
-                                <td>$<span id="subtotal">0.00</span></td>
-                            </tr>
                             <tr>
                                 <td><strong>Total:</strong></td>
                                 <td><strong>$<span id="total">0.00</span></strong></td>
@@ -326,24 +324,36 @@
         }
 
         function calcularTotales() {
-            const precios = document.querySelectorAll('.price');
-            let subtotal = 0;
+            const rows = document.querySelectorAll('#items-list tr');
+            let totalGeneral = 0;
 
-            precios.forEach(cell => {
-                const valor = parseFloat(cell.innerText.replace(/[^0-9.-]+/g, '')) || 0;
-                subtotal += valor;
+            rows.forEach(row => {
+                const cantElem = row.querySelector('.qty');
+                const unitPriceElem = row.querySelector('.unit-price');
+                const rowSubtotalElem = row.querySelector('.row-subtotal');
+
+                if (cantElem && unitPriceElem && rowSubtotalElem) {
+                    const cantidad = parseFloat(cantElem.innerText.replace(/[^0-9.-]+/g, '')) || 0;
+                    const precioUnitario = parseFloat(unitPriceElem.innerText.replace(/[^0-9.-]+/g, '')) || 0;
+                    
+                    const subtotalFila = cantidad * precioUnitario;
+                    rowSubtotalElem.innerText = subtotalFila.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    totalGeneral += subtotalFila;
+                }
             });
 
-            document.getElementById('subtotal').innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 });
-            document.getElementById('total').innerText = subtotal.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+            document.getElementById('total').innerText = totalGeneral.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        function agregarFila(descripcion = "Nuevo servicio / repuesto", precio = 0) {
+        function agregarFila(cantidad = 1, descripcion = "Nuevo servicio / repuesto", precioUnitario = 0) {
             const tbody = document.getElementById('items-list');
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
+                <td contenteditable="true" class="qty" style="text-align: center;" oninput="calcularTotales()">${cantidad}</td>
                 <td contenteditable="true">${descripcion}</td>
-                <td contenteditable="true" class="price" oninput="calcularTotales()">${precio}</td>
+                <td contenteditable="true" class="unit-price" style="text-align: right;" oninput="calcularTotales()">${precioUnitario}</td>
+                <td class="row-subtotal" style="text-align: right;">0.00</td>
                 <td class="no-print" style="text-align: center;">
                     <button class="btn-remove" onclick="eliminarFila(this)">X</button>
                 </td>
@@ -361,7 +371,7 @@
             const descripcion = selectedOption.value;
             const precio = selectedOption.getAttribute('data-price');
 
-            agregarFila(descripcion, precio);
+            agregarFila(1, descripcion, precio);
             selector.selectedIndex = 0;
         }
 
