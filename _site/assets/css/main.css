@@ -187,8 +187,7 @@ button {
   justify-content: center;
   padding: 0.85rem 1.25rem;
   border-radius: 999px;
-  /* background: var(--color-primary); */
-  background: #25D366;
+  background: var(--color-primary);
   color: var(--color-white);
   transition: transform var(--transition), box-shadow var(--transition);
 }
