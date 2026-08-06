@@ -24,6 +24,14 @@ sudo gem install jekyll bundler
 jekyll serve
 ```
 
+```bash
+bundle exec jekyll serve
+```
+
+```bash
+bundle exec jekyll serve --livereload
+```
+
 ### 4. Abrir en el navegador
 
 Visita:
