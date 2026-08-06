@@ -505,7 +505,16 @@ permalink: /cotizador/
                 return;
             }
 
+            const presupuestoTexto = String(numPresupuesto).trim().padStart(6, '0');
+            const nombrePdf = `Conan Informatica Prespuesto ${presupuestoTexto}`;
+            const tituloOriginal = document.title;
+
+            document.title = nombrePdf;
             window.print();
+
+            setTimeout(() => {
+                document.title = tituloOriginal;
+            }, 1000);
         }
 
         actualizarVistaNumero(obtenerNumeroActual());
