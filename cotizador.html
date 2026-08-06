@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="facebook-domain-verification" content="htsco8sbgjdlhm9una0nwuojo9caem" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presupuesto - Conan Soluciones Informáticas</title>
     <style>
@@ -168,14 +169,16 @@
     <div class="control-panel no-print">
         <div>
             <label><strong>Presupuesto N°:</strong></label>
-            <input type="text" id="budget-number" readonly style="width: 80px;">
+            <!-- REQ 1: Permitir modificar el número manualmente -->
+            <input type="text" id="budget-number" style="width: 80px;" oninput="modificarNumeroManual(this.value)">
             <button class="btn-action" onclick="generarNuevoPresupuesto()">Nuevo (+1)</button>
         </div>
 
         <div style="border-left: 1px solid #ccc; padding-left: 10px;">
             <strong>Tipo de Tarifa:</strong><br>
-            <label><input type="radio" name="tarifa-tipo" value="freelance" checked onchange="actualizarPreciosDropdown()"> Freelance/Taller</label>
-            <label style="margin-left: 8px;"><input type="radio" name="tarifa-tipo" value="local" onchange="actualizarPreciosDropdown()"> Local</label>
+            <!-- REQ 4: Actualización al cambiar de tarifa -->
+            <label><input type="radio" name="tarifa-tipo" value="freelance" checked onchange="actualizarTipoTarifa()"> Freelance/Taller</label>
+            <label style="margin-left: 8px;"><input type="radio" name="tarifa-tipo" value="local" onchange="actualizarTipoTarifa()"> Local</label>
         </div>
         
         <div>
@@ -188,7 +191,8 @@
 
         <div>
             <button class="btn-action" onclick="agregarFila(1, '', 0)">+ Fila Vacía</button>
-            <button class="btn-action" style="background-color: #27ae60;" onclick="window.print()">Imprimir / Guardar PDF</button>
+            <!-- REQ 3: Validación antes de imprimir/guardar -->
+            <button class="btn-action" style="background-color: #27ae60;" onclick="validarYGuardar()">Imprimir / Guardar PDF</button>
         </div>
     </div>
 
@@ -230,8 +234,10 @@
                 <td>
                     <!-- Datos del Cliente -->
                     <div style="margin-bottom: 15px;">
-                        <p style="margin: 3px 0;"><strong>Cliente:</strong> <span contenteditable="true">Nombre y Apellido</span></p>
-                        <p style="margin: 3px 0;"><strong>Equipo / Servicio:</strong> <span contenteditable="true">Detalle del equipo o problema</span></p>
+                        <p style="margin: 3px 0;"><strong>Cliente:</strong> <span id="client-name" contenteditable="true">Nombre y Apellido</span></p>
+                        <!-- REQ 2: Campo Domicilio -->
+                        <p style="margin: 3px 0;"><strong>Domicilio:</strong> <span id="client-address" contenteditable="true">Calle y Altura / Ciudad</span></p>
+                        <p style="margin: 3px 0;"><strong>Equipo / Servicio:</strong> <span id="client-equipment" contenteditable="true">Detalle del equipo o problema</span></p>
                     </div>
 
                     <!-- Tabla de ítems con edición directa -->
@@ -323,6 +329,31 @@
             });
         }
 
+        /* REQ 4: Actualizar precios de la tabla e interfaz al cambiar el radio button */
+        function actualizarTipoTarifa() {
+            actualizarPreciosDropdown();
+            
+            const esLocal = document.querySelector('input[name="tarifa-tipo"]:checked').value === 'local';
+            const rows = document.querySelectorAll('#items-list tr');
+
+            rows.forEach(row => {
+                const descElem = row.cells[1];
+                const unitPriceElem = row.querySelector('.unit-price');
+
+                if (descElem && unitPriceElem) {
+                    const descTexto = descElem.innerText.trim();
+                    const servicioEncontrado = serviciosBase.find(s => s.desc === descTexto);
+
+                    if (servicioEncontrado) {
+                        const nuevoPrecio = esLocal ? servicioEncontrado.local : servicioEncontrado.freelance;
+                        unitPriceElem.innerText = nuevoPrecio;
+                    }
+                }
+            });
+
+            calcularTotales();
+        }
+
         function calcularTotales() {
             const rows = document.querySelectorAll('#items-list tr');
             let totalGeneral = 0;
@@ -393,15 +424,46 @@
         }
 
         function actualizarVistaNumero(numero) {
-            const numFormateado = String(numero).padStart(6, '0');
+            const val = String(numero).trim();
+            const numFormateado = !isNaN(val) && val !== '' ? String(val).padStart(6, '0') : val;
             document.getElementById('budget-number').value = numFormateado;
             document.getElementById('display-budget-number').innerText = numFormateado;
+        }
+
+        /* REQ 1: Permitir edición manual del número */
+        function modificarNumeroManual(valor) {
+            document.getElementById('display-budget-number').innerText = valor;
+            if (!isNaN(valor) && valor.trim() !== '') {
+                localStorage.setItem(COUNTER_KEY, parseInt(valor));
+            }
         }
 
         function generarNuevoPresupuesto() {
             let actual = obtenerNumeroActual() + 1;
             localStorage.setItem(COUNTER_KEY, actual);
             actualizarVistaNumero(actual);
+        }
+
+        /* REQ 3: Alerta de validación de campos obligatorios/modificados */
+        function validarYGuardar() {
+            const numPresupuesto = document.getElementById('budget-number').value.trim();
+            const cliente = document.getElementById('client-name').innerText.trim();
+            const domicilio = document.getElementById('client-address').innerText.trim();
+            const equipo = document.getElementById('client-equipment').innerText.trim();
+
+            const faltantes = [];
+
+            if (!numPresupuesto) faltantes.push("Número de Presupuesto");
+            if (!cliente || cliente === "Nombre y Apellido") faltantes.push("Cliente");
+            if (!domicilio || domicilio === "Calle y Altura / Ciudad") faltantes.push("Domicilio");
+            if (!equipo || equipo === "Detalle del equipo o problema") faltantes.push("Equipo / Servicio");
+
+            if (faltantes.length > 0) {
+                alert("Advertencia: Debe completar o modificar los siguientes campos antes de guardar/imprimir:\n\n• " + faltantes.join("\n• "));
+                return;
+            }
+
+            window.print();
         }
 
         actualizarVistaNumero(obtenerNumeroActual());
