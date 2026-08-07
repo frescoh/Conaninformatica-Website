@@ -531,13 +531,63 @@ permalink: /cotizador/
             const texto = String(valor).trim();
             if (!texto) return 0;
 
-            const limpio = texto
-                .replace(/\s/g, '')
-                .replace(/\./g, '')
-                .replace(/,/g, '.')
-                .replace(/[^0-9.-]/g, '');
+            const textoSinEspacios = texto.replace(/\s/g, '');
+            const tieneSignoNegativo = textoSinEspacios.startsWith('-') || textoSinEspacios.endsWith('-') || (textoSinEspacios.match(/-/g) || []).length % 2 === 1;
+            const limpio = textoSinEspacios
+                .replace(/^\$/, '')
+                .replace(/[^0-9,.-]/g, '');
 
-            return Number(limpio || 0);
+            if (!limpio) return 0;
+
+            const signo = tieneSignoNegativo ? -1 : 1;
+            const textoSinSigno = limpio.replace(/-/g, '');
+            const tieneComa = textoSinSigno.includes(',');
+            const tienePunto = textoSinSigno.includes('.');
+
+            if (tieneComa && tienePunto) {
+                const ultimoSeparador = textoSinSigno.lastIndexOf(',') > textoSinSigno.lastIndexOf('.') ? ',' : '.';
+                const [entero, decimal] = ultimoSeparador === ',' ? textoSinSigno.split(',') : textoSinSigno.split('.');
+                const enteroSinSeparadores = entero.replace(/[.,]/g, '');
+                const decimalSinSeparadores = (decimal || '').replace(/[.,]/g, '');
+                return signo * Number(`${enteroSinSeparadores}.${decimalSinSeparadores}`);
+            }
+
+            if (tieneComa) {
+                const partes = textoSinSigno.split(',');
+                if (partes.length > 1 && partes[1].length === 2) {
+                    return signo * Number(`${partes[0].replace(/\./g, '')}.${partes[1]}`);
+                }
+                return signo * Number(textoSinSigno.replace(/,/g, ''));
+            }
+
+            if (tienePunto) {
+                const partes = textoSinSigno.split('.');
+                if (partes.length > 1 && partes[1].length === 2) {
+                    return signo * Number(`${partes[0].replace(/,/g, '')}.${partes[1]}`);
+                }
+                return signo * Number(textoSinSigno.replace(/\./g, ''));
+            }
+
+            return signo * Number(textoSinSigno || 0);
+        }
+
+        function actualizarSubtotalFila(row) {
+            const cantElem = row.querySelector('.qty');
+            const unitPriceElem = row.querySelector('.unit-price');
+            const rowSubtotalElem = row.querySelector('.row-subtotal');
+
+            if (!cantElem || !unitPriceElem || !rowSubtotalElem) {
+                return 0;
+            }
+
+            const cantidad = parsearNumeroDesdeTexto(cantElem.innerText);
+            const precioUnitario = parsearNumeroDesdeTexto(unitPriceElem.getAttribute('data-raw') || unitPriceElem.innerText);
+            const subtotalFila = cantidad * precioUnitario;
+
+            rowSubtotalElem.innerText = formatearMonedaARS(subtotalFila);
+            rowSubtotalElem.setAttribute('data-raw', String(subtotalFila));
+
+            return subtotalFila;
         }
 
         function calcularTotales() {
@@ -545,19 +595,7 @@ permalink: /cotizador/
             let totalGeneral = 0;
 
             rows.forEach(row => {
-                const cantElem = row.querySelector('.qty');
-                const unitPriceElem = row.querySelector('.unit-price');
-                const rowSubtotalElem = row.querySelector('.row-subtotal');
-
-                if (cantElem && unitPriceElem && rowSubtotalElem) {
-                    const cantidad = parsearNumeroDesdeTexto(cantElem.innerText);
-                    const precioUnitario = parsearNumeroDesdeTexto(unitPriceElem.getAttribute('data-raw') || unitPriceElem.innerText);
-
-                    const subtotalFila = cantidad * precioUnitario;
-                    rowSubtotalElem.innerText = formatearMonedaARS(subtotalFila);
-
-                    totalGeneral += subtotalFila;
-                }
+                totalGeneral += actualizarSubtotalFila(row);
             });
 
             document.getElementById('total').innerText = formatearMonedaARS(totalGeneral);
@@ -577,6 +615,34 @@ permalink: /cotizador/
             `;
             tbody.appendChild(newRow);
             calcularTotales();
+        }
+
+        const itemsList = document.getElementById('items-list');
+        if (itemsList) {
+            itemsList.addEventListener('input', (event) => {
+                const target = event.target;
+                if (!target.classList.contains('qty') && !target.classList.contains('unit-price')) return;
+
+                const row = target.closest('tr');
+                if (!row) return;
+
+                if (target.classList.contains('unit-price')) {
+                    const valorNumerico = parsearNumeroDesdeTexto(target.innerText);
+                    target.setAttribute('data-raw', String(valorNumerico));
+                }
+
+                actualizarSubtotalFila(row);
+                calcularTotales();
+            });
+
+            itemsList.addEventListener('blur', (event) => {
+                if (!event.target.classList.contains('unit-price')) return;
+
+                const valorNumerico = parsearNumeroDesdeTexto(event.target.innerText);
+                event.target.setAttribute('data-raw', String(valorNumerico));
+                event.target.innerText = formatearMonedaARS(valorNumerico);
+                calcularTotales();
+            }, true);
         }
 
         function agregarServicioSeleccionado() {
