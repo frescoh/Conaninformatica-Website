@@ -10,7 +10,7 @@ permalink: /cotizador/
         <div>
             <label><strong>Presupuesto N°:</strong></label>
             <input type="text" id="budget-number" style="width: 80px;" oninput="modificarNumeroManual(this.value)">
-            <button class="btn-action" onclick="generarNuevoPresupuesto()">Nuevo (+1)</button>
+            <button class="btn-action" onclick="location.reload()">Nuevo</button>
         </div>
 
         <div style="border-left: 1px solid #ccc; padding-left: 10px;">
@@ -36,7 +36,7 @@ permalink: /cotizador/
 
         <div>
             <button class="btn-action" onclick="agregarFila(1, '', 0)">+ Fila Vacía</button>
-            <button class="btn-action" style="background-color: #27ae60;" onclick="validarYGuardar()">Imprimir / Guardar PDF</button>
+            <button class="btn-action" style="background-color: #16a34a;" onclick="validarYGuardar()">Imprimir Presupuesto</button>
         </div>
     </div>
 
@@ -45,13 +45,17 @@ permalink: /cotizador/
             <tr>
                 <td>
                     <div class="header-content">
-                        <img src="{{ '/images/logo.png' | relative_url }}" alt="Conan Soluciones Informáticas" class="header-logo">
-                        <div class="header-details">
-                            <p class="header-company">CONAN SOLUCIONES INFORMÁTICAS</p>
-                            <p><strong>Atención a Hogares, Negocios y Empresas</strong></p>
-                            <p>Celular / WhatsApp: 3874520000</p>
-                            <p>Web: https://conaninformatica.com.ar/</p>
-                            <p style="margin-top: 8px;">Presupuesto N°: <strong><span id="display-budget-number">000000</span></strong> | Fecha: <span id="current-date"></span></p>
+                        <div class="header-column header-column-logo">
+                            <img src="{{ '/images/logo.png' | relative_url }}" alt="Conan Soluciones Informáticas" class="header-logo">
+                        </div>
+                        <div class="header-column header-column-details">
+                            <div class="header-details">
+                                <p class="header-company">CONAN SOLUCIONES INFORMÁTICAS</p>
+                                <p><strong>Atención a Hogares, Negocios y Empresas</strong></p>
+                                <p>Celular / WhatsApp: 3874520000</p>
+                                <p>Web: https://conaninformatica.com.ar/</p>
+                                <p style="margin-top: 8px;">Presupuesto N°: <strong><span id="display-budget-number">000000</span></strong> | Fecha: <span id="current-date"></span></p>
+                            </div>
                         </div>
                     </div>
                 </td>
@@ -72,7 +76,7 @@ permalink: /cotizador/
         <tbody>
             <tr>
                 <td>
-                    <div style="margin-bottom: 15px;">
+                    <div class="client-data" style="margin-bottom: 15px;">
                         <p style="margin: 3px 0;"><strong>Cliente:</strong> <span id="client-name" class="editable-field" contenteditable="true" data-placeholder="Nombre y Apellido">Nombre y Apellido</span></p>
                         <p style="margin: 3px 0;"><strong>Domicilio:</strong> <span id="client-address" class="editable-field" contenteditable="true" data-placeholder="Calle y Altura / Ciudad">Calle y Altura / Ciudad</span></p>
                         <p style="margin: 3px 0;"><strong>Equipo / Servicio:</strong> <span id="client-equipment" class="editable-field" contenteditable="true" data-placeholder="Detalle del equipo o problema">Detalle del equipo o problema</span></p>
@@ -97,7 +101,7 @@ permalink: /cotizador/
                         <table>
                             <tr>
                                 <td><strong>Total:</strong></td>
-                                <td><strong>$<span id="total">0.00</span></strong></td>
+                                <td><strong><span id="total">0.00</span></strong></td>
                             </tr>
                         </table>
                     </div>
@@ -143,9 +147,45 @@ permalink: /cotizador/
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
+        .cotizador-page .header-column {
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .cotizador-page .header-column-logo {
+            flex: 1 1 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .cotizador-page .header-column-details {
+            flex: 2 1 0;
+            display: flex;
+            justify-content: flex-end;
+            text-align: right;
+        }
         .cotizador-page .header-logo {
-            max-width: 180px;
+            max-width: 100%;
+            width: 100%;
+            max-height: 95px;
             height: auto;
+            object-fit: contain;
+        }
+
+        @media print {
+            .cotizador-page .header-content {
+                display: flex !important;
+            }
+            .cotizador-page .header-column-logo {
+                flex: 1 1 0 !important;
+            }
+            .cotizador-page .header-logo {
+                height: 95px !important;
+                max-height: 95px !important;
+                width: auto !important;
+                max-width: 100% !important;
+                object-fit: contain !important;
+                display: block !important;
+            }
         }
         .cotizador-page .header-details {
             text-align: right;
@@ -171,18 +211,54 @@ permalink: /cotizador/
             width: 100%;
         }
 
+        .cotizador-page .client-data {
+            margin-bottom: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
         .cotizador-page .items-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            table-layout: fixed;
         }
         .cotizador-page .items-table th, .cotizador-page .items-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #d8dee9;
+            padding: 7px 8px;
             text-align: left;
+            vertical-align: top;
         }
         .cotizador-page .items-table th {
-            background-color: #f2f2f2;
+            background-color: #f2f4f7;
+            font-weight: 700;
+        }
+        .cotizador-page .items-table th:nth-child(1),
+        .cotizador-page .items-table td:nth-child(1) {
+            width: 10%;
+            text-align: center;
+        }
+        .cotizador-page .items-table th:nth-child(2),
+        .cotizador-page .items-table td:nth-child(2) {
+            width: 52%;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .cotizador-page .items-table th:nth-child(3),
+        .cotizador-page .items-table td:nth-child(3) {
+            width: 19%;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .cotizador-page .items-table th:nth-child(4),
+        .cotizador-page .items-table td:nth-child(4) {
+            width: 19%;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .cotizador-page .items-table td:nth-child(5) {
+            width: 0;
         }
 
         .cotizador-page .btn-remove {
@@ -250,38 +326,81 @@ permalink: /cotizador/
         }
 
         .cotizador-page .totals-section {
-            margin-top: 20px;
+            margin-top: 18px;
             float: right;
-            width: 280px;
+            width: 300px;
         }
         .cotizador-page .totals-section table {
             width: 100%;
             border-collapse: collapse;
         }
         .cotizador-page .totals-section td {
-            padding: 5px;
+            padding: 6px 0;
             text-align: right;
         }
 
         .cotizador-page .observations-section {
-            margin-top: 20px;
+            margin-top: 18px;
             clear: both;
-            border: 1px dashed #ccc;
+            border: 1px solid #d8dee9;
             padding: 10px;
             background-color: #fafafa;
             font-size: 0.9em;
         }
 
         @media print {
+            @page {
+                size: A4;
+                margin: 18mm 15mm 18mm 15mm;
+            }
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
             .cotizador-page {
                 padding: 0;
+                color: #1f2937;
+                font-size: 10pt;
             }
             .cotizador-page .no-print, .cotizador-page .btn-remove {
                 display: none !important;
             }
-            @page {
-                size: A4;
-                margin: 15mm 10mm 20mm 10mm;
+            .cotizador-page .header-content {
+                margin-bottom: 10mm;
+                padding-bottom: 4mm;
+                border-bottom: 1px solid #cbd5e1;
+            }
+            .cotizador-page .header-logo {
+                max-width: 130px;
+            }
+            .cotizador-page .header-details {
+                font-size: 9pt;
+                line-height: 1.35;
+            }
+            .cotizador-page .header-details .header-company {
+                font-size: 12.5pt;
+                margin-bottom: 2mm;
+            }
+            .cotizador-page .items-table {
+                margin-top: 8mm;
+                font-size: 9pt;
+            }
+            .cotizador-page .items-table th,
+            .cotizador-page .items-table td {
+                padding: 2.5mm 2mm;
+            }
+            .cotizador-page .items-table tr:nth-child(even) td {
+                background-color: #f8fafc;
+            }
+            .cotizador-page .totals-section {
+                width: 290px;
+                margin-top: 8mm;
+            }
+            .cotizador-page .observations-section {
+                margin-top: 10mm;
+                background-color: transparent;
+                border: 1px solid #cbd5e1;
+                padding: 3mm;
             }
             .cotizador-page .footer-content {
                 position: fixed;
@@ -289,10 +408,9 @@ permalink: /cotizador/
                 left: 0;
                 right: 0;
                 background-color: #fff;
-            }
-            .cotizador-page .observations-section {
-                background-color: transparent;
-                border: 1px solid #ddd;
+                border-top: 1px solid #cbd5e1;
+                padding: 3mm 0 0;
+                font-size: 8.5pt;
             }
         }
     </style>
@@ -364,7 +482,8 @@ permalink: /cotizador/
 
                     if (servicioEncontrado) {
                         const nuevoPrecio = esLocal ? servicioEncontrado.local : servicioEncontrado.freelance;
-                        unitPriceElem.innerText = nuevoPrecio;
+                        unitPriceElem.innerText = formatearMonedaARS(nuevoPrecio);
+                        unitPriceElem.setAttribute('data-raw', nuevoPrecio);
                     }
                 }
             });
@@ -397,6 +516,30 @@ permalink: /cotizador/
             });
         }
 
+        function formatearMonedaARS(valor) {
+            const numero = Number(valor || 0);
+            const parteEntera = numero.toLocaleString('de-DE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            return `$ ${parteEntera}`;
+        }
+
+        function parsearNumeroDesdeTexto(valor) {
+            if (valor === null || valor === undefined) return 0;
+
+            const texto = String(valor).trim();
+            if (!texto) return 0;
+
+            const limpio = texto
+                .replace(/\s/g, '')
+                .replace(/\./g, '')
+                .replace(/,/g, '.')
+                .replace(/[^0-9.-]/g, '');
+
+            return Number(limpio || 0);
+        }
+
         function calcularTotales() {
             const rows = document.querySelectorAll('#items-list tr');
             let totalGeneral = 0;
@@ -407,17 +550,17 @@ permalink: /cotizador/
                 const rowSubtotalElem = row.querySelector('.row-subtotal');
 
                 if (cantElem && unitPriceElem && rowSubtotalElem) {
-                    const cantidad = parseFloat(cantElem.innerText.replace(/[^0-9.-]+/g, '')) || 0;
-                    const precioUnitario = parseFloat(unitPriceElem.innerText.replace(/[^0-9.-]+/g, '')) || 0;
+                    const cantidad = parsearNumeroDesdeTexto(cantElem.innerText);
+                    const precioUnitario = parsearNumeroDesdeTexto(unitPriceElem.getAttribute('data-raw') || unitPriceElem.innerText);
 
                     const subtotalFila = cantidad * precioUnitario;
-                    rowSubtotalElem.innerText = subtotalFila.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    rowSubtotalElem.innerText = formatearMonedaARS(subtotalFila);
 
                     totalGeneral += subtotalFila;
                 }
             });
 
-            document.getElementById('total').innerText = totalGeneral.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('total').innerText = formatearMonedaARS(totalGeneral);
         }
 
         function agregarFila(cantidad = 1, descripcion = "Nuevo servicio / repuesto", precioUnitario = 0) {
@@ -426,8 +569,8 @@ permalink: /cotizador/
             newRow.innerHTML = `
                 <td contenteditable="true" class="qty" style="text-align: center;" oninput="calcularTotales()">${cantidad}</td>
                 <td contenteditable="true">${descripcion}</td>
-                <td contenteditable="true" class="unit-price" style="text-align: right;" oninput="calcularTotales()">${precioUnitario}</td>
-                <td class="row-subtotal" style="text-align: right;">0.00</td>
+                <td contenteditable="true" class="unit-price" data-raw="${precioUnitario}" style="text-align: right;" oninput="calcularTotales()">${formatearMonedaARS(precioUnitario)}</td>
+                <td class="row-subtotal" style="text-align: right;">${formatearMonedaARS(0)}</td>
                 <td class="no-print" style="text-align: center;">
                     <button class="btn-remove" onclick="eliminarFila(this)">X</button>
                 </td>
@@ -455,38 +598,163 @@ permalink: /cotizador/
             calcularTotales();
         }
 
-        const COUNTER_KEY = 'conan_budget_counter';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4YdjXuWWiDgoJLFHsgHTK9Ie34s0FuqKQxEfKvl7CctIeyfbdPBh-SuH-inV2iVbJXQ/exec';
+        let numeroPresupuestoActual = 1;
 
-        function obtenerNumeroActual() {
-            let count = localStorage.getItem(COUNTER_KEY);
-            if (!count) {
-                count = 1;
-                localStorage.setItem(COUNTER_KEY, count);
-            }
-            return parseInt(count);
+        function formatearNumeroPresupuesto(numero) {
+            const valor = Number(numero || 0);
+            return String(valor).padStart(6, '0');
         }
 
         function actualizarVistaNumero(numero) {
-            const val = String(numero).trim();
-            const numFormateado = !isNaN(val) && val !== '' ? String(val).padStart(6, '0') : val;
+            const valorNumerico = Number(String(numero).trim().replace(/\D/g, '')) || 0;
+            numeroPresupuestoActual = valorNumerico;
+            const numFormateado = formatearNumeroPresupuesto(valorNumerico);
             document.getElementById('budget-number').value = numFormateado;
             document.getElementById('display-budget-number').innerText = numFormateado;
         }
 
         function modificarNumeroManual(valor) {
-            document.getElementById('display-budget-number').innerText = valor;
-            if (!isNaN(valor) && valor.trim() !== '') {
-                localStorage.setItem(COUNTER_KEY, parseInt(valor));
-            }
+            const valorNumerico = Number(String(valor).trim().replace(/\D/g, '')) || 0;
+            numeroPresupuestoActual = valorNumerico;
+            actualizarVistaNumero(valorNumerico);
         }
 
         function generarNuevoPresupuesto() {
-            let actual = obtenerNumeroActual() + 1;
-            localStorage.setItem(COUNTER_KEY, actual);
-            actualizarVistaNumero(actual);
+            location.reload();
         }
 
-        function validarYGuardar() {
+        async function cargarSiguienteNumeroDesdeAPI() {
+            try {
+                const respuesta = await fetch(APPS_SCRIPT_URL, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+
+                if (!respuesta.ok) {
+                    throw new Error('No se pudo obtener el siguiente número desde la API.');
+                }
+
+                const datos = await respuesta.json();
+                const siguienteNumero = datos && Object.prototype.hasOwnProperty.call(datos, 'siguienteNumero')
+                    ? Number(datos.siguienteNumero)
+                    : Number(datos && datos.numero ? datos.numero : 0);
+
+                if (!Number.isNaN(siguienteNumero) && siguienteNumero >= 0) {
+                    actualizarVistaNumero(siguienteNumero);
+                    return siguienteNumero;
+                }
+
+                throw new Error('La respuesta de la API no contiene un número válido.');
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo cargar el siguiente número de presupuesto desde la API.');
+                return null;
+            }
+        }
+
+        function ajustarLogoParaPdf(clon) {
+            const imagenes = clon.querySelectorAll('img');
+            if (imagenes.length === 0) return;
+
+            const logo = clon.querySelector('img[alt*="logo" i], img.logo, img[class*="logo" i], img[id*="logo" i]')
+                || (imagenes.length === 1 ? imagenes[0] : null);
+
+            if (!logo) return;
+
+            logo.setAttribute('src', 'https://conaninformatica.com.ar/images/logo.png');
+            logo.setAttribute('height', '95');
+            logo.setAttribute('width', '160');
+            logo.setAttribute('style', 'height: 95px !important; max-height: 95px !important; width: auto !important; max-width: 100% !important; display: block !important; object-fit: contain !important;');
+
+            if (logo.parentNode) {
+                const wrapper = document.createElement('div');
+                wrapper.setAttribute('class', 'header-logo-wrapper');
+                wrapper.setAttribute('style', 'display: flex !important; align-items: center !important; justify-content: flex-start !important; height: 95px !important; min-height: 95px !important; overflow: visible !important;');
+                logo.parentNode.insertBefore(wrapper, logo);
+                wrapper.appendChild(logo);
+            }
+        }
+
+        function obtenerHtmlLimpioParaPdf() {
+            const clon = document.documentElement.cloneNode(true);
+            const elementosParaEliminar = clon.querySelectorAll('.control-panel, .btn-remove');
+            elementosParaEliminar.forEach(elemento => elemento.remove());
+
+            ajustarLogoParaPdf(clon);
+
+            const title = clon.querySelector('title');
+            const numeroActualFormateado = formatearNumeroPresupuesto(numeroPresupuestoActual);
+            if (title) {
+                title.textContent = `Presupuesto_${numeroActualFormateado}`;
+            }
+
+            const style = clon.querySelector('style');
+            if (style) {
+                style.textContent += `
+                    body { background: #fff; }
+                    .cotizador-page { padding: 0; }
+                    .no-print { display: none !important; }
+                `;
+            }
+
+            return clon.outerHTML;
+        }
+
+        async function guardarPresupuestoEnAPI() {
+            try {
+                const numeroActual = Number(String(numeroPresupuestoActual).trim().replace(/\D/g, '')) || 0;
+                const htmlLimpioParaPdf = obtenerHtmlLimpioParaPdf();
+
+                const respuesta = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify({
+                        numero: numeroActual,
+                        html: htmlLimpioParaPdf
+                    })
+                });
+
+                const datos = await respuesta.json();
+                if (datos && datos.status === 'success') {
+                    const mensajePdf = datos.pdfUrl
+                        ? ` PDF generado en Drive: ${datos.pdfUrl}`
+                        : '';
+                    alert(`Presupuesto N° ${String(datos.numero).padStart(6, '0')} guardado con éxito. ${mensajePdf}`.trim());
+                    const siguiente = Number(datos.numero) + 1;
+                    const numFormateado = String(siguiente).padStart(6, '0');
+                    document.getElementById('budget-number').value = numFormateado;
+                    document.getElementById('display-budget-number').innerText = numFormateado;
+                    numeroPresupuestoActual = siguiente;
+                    return true;
+                }
+
+                alert('Error al guardar: ' + (datos && datos.message ? datos.message : 'Respuesta inesperada'));
+                return false;
+            } catch (error) {
+                console.error(error);
+                alert('Error en la conexión con Google Sheets');
+                return false;
+            }
+        }
+
+        function prepararDocumentoParaImpresion() {
+            const numPresupuesto = formatearNumeroPresupuesto(numeroPresupuestoActual);
+            document.title = `Presupuesto_${numPresupuesto}`;
+            document.body.classList.add('is-printing-budget');
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-AR');
+            calcularTotales();
+        }
+
+        function finalizarDocumentoParaImpresion(tituloOriginal) {
+            document.body.classList.remove('is-printing-budget');
+            document.title = tituloOriginal;
+        }
+
+        async function validarYGuardar() {
             const numPresupuesto = document.getElementById('budget-number').value.trim();
             const cliente = document.getElementById('client-name').innerText.trim();
             const domicilio = document.getElementById('client-address').innerText.trim();
@@ -500,25 +768,45 @@ permalink: /cotizador/
             if (!equipo || equipo === "Detalle del equipo o problema") faltantes.push("Equipo / Servicio");
 
             if (faltantes.length > 0) {
-                alert("Advertencia: Debe completar o modificar los siguientes campos antes de guardar/imprimir:\n\n• " + faltantes.join("\n• "));
+                alert("Advertencia: Debe completar o modificar los siguientes campos antes de imprimir:\n\n• " + faltantes.join("\n• "));
                 return;
             }
 
-            const presupuestoTexto = String(numPresupuesto).trim().padStart(6, '0');
-            const nombrePdf = `Conan Informatica - Prespuesto ${presupuestoTexto}`;
             const tituloOriginal = document.title;
-
-            document.title = nombrePdf;
+            const numeroVisible = formatearNumeroPresupuesto(numeroPresupuestoActual);
+            document.title = `Presupuesto_${numeroVisible}`;
+            prepararDocumentoParaImpresion();
             window.print();
 
+            const actualizado = await guardarPresupuestoEnAPI();
+            if (!actualizado) {
+                setTimeout(() => {
+                    finalizarDocumentoParaImpresion(tituloOriginal);
+                }, 1000);
+                return;
+            }
+
             setTimeout(() => {
-                document.title = tituloOriginal;
+                finalizarDocumentoParaImpresion(tituloOriginal);
             }, 1000);
         }
 
-        actualizarVistaNumero(obtenerNumeroActual());
-        actualizarPreciosDropdown();
-        actualizarEstiloTipoTarifa();
-        inicializarCamposEditables();
+        async function inicializarCotizador() {
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('es-AR');
+            actualizarPreciosDropdown();
+            actualizarEstiloTipoTarifa();
+            inicializarCamposEditables();
+            await cargarSiguienteNumeroDesdeAPI();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                cargarSiguienteNumeroDesdeAPI();
+                inicializarCotizador();
+            });
+        } else {
+            cargarSiguienteNumeroDesdeAPI();
+            inicializarCotizador();
+        }
     </script>
 </section>

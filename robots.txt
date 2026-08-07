@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://conaninformatica.com.ar/sitemap.xml
